@@ -1,10 +1,10 @@
 import java.util.Arrays;
 
-public class StudentPlayer extends Player{
+public class StudentPlayer2 extends Player{
     private final int HUMAN_PLAYER = 1;
     private final int AI_PLAYER = 2;
 
-    public StudentPlayer(int playerIndex, int[] boardSize, int nToConnect) {
+    public StudentPlayer2(int playerIndex, int[] boardSize, int nToConnect) {
         super(playerIndex, boardSize, nToConnect);
     }
 
@@ -12,7 +12,7 @@ public class StudentPlayer extends Player{
     public int step(Board board) {
         //return minimax(board, 3, true, Integer.MIN_VALUE, Integer.MAX_VALUE)[1];
         //return getBestMove(board, true);
-        return minimax2(board, 4, false, Integer.MIN_VALUE, Integer.MAX_VALUE)[1];
+        return minimax2(board, 5, false, Integer.MIN_VALUE, Integer.MAX_VALUE)[1];
     }
 
     // minimax

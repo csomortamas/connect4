@@ -12,7 +12,7 @@ public class StudentPlayer extends Player{
     public int step(Board board) {
         //return minimax(board, 3, true, Integer.MIN_VALUE, Integer.MAX_VALUE)[1];
         //return getBestMove(board, true);
-        return minimax2(board, 4, false, Integer.MIN_VALUE, Integer.MAX_VALUE)[1];
+        return minimax2(board, 5, true, Integer.MIN_VALUE, Integer.MAX_VALUE)[1];
     }
 
     // minimax
@@ -187,48 +187,18 @@ public class StudentPlayer extends Player{
         }
 
         // center column bonus
-        //int[] centerArray = new int[6];
-        //for(int row_ix = 0; row_ix < 6; row_ix++) {
-        //    centerArray[row_ix] = board.getState()[row_ix][3];
-        //}
-        score += centerBonusVariant(board, 0, AI_PLAYER, 5);
-        score += centerBonusVariant(board, 0, HUMAN_PLAYER, -5);
-
-        score += centerBonusVariant(board, 1, AI_PLAYER, 4);
-        score += centerBonusVariant(board, 1, HUMAN_PLAYER, -4);
-
-        score += centerBonusVariant(board, 2, AI_PLAYER, 2);
-        score += centerBonusVariant(board, 2, HUMAN_PLAYER, -2);
+        int[] centerArray = new int[6];
+        for(int row_ix = 0; row_ix < 6; row_ix++) {
+            centerArray[row_ix] = board.getState()[row_ix][3];
+        }
+        score += centerBonus(centerArray, AI_PLAYER, 3);
+        score += centerBonus(centerArray, HUMAN_PLAYER, -3);
 
         return score;
     }
 
     private int centerBonus(int[] centerColumn, int player, int bonusPerPiece) {
         return (int)Arrays.stream(centerColumn).filter(num -> num == player).count() * bonusPerPiece;
-    }
-
-    private int centerBonusVariant(Board board, int centerOffset, int player, int bonusPerPiece) {
-        if(centerOffset == 0) {
-            int[] column = new int[6];
-            for(int row_ix = 0; row_ix < 6; row_ix++) {
-                column[row_ix] = board.getState()[row_ix][3];
-            }
-            return (int)Arrays.stream(column).filter(num -> num == player).count() * bonusPerPiece;
-        } else {
-            int sum = 0;
-            int[] centerLeft = new int[6];
-            int[] centerRight = new int[6];
-            for(int row_ix = 0; row_ix < 6; row_ix++) {
-                centerLeft[row_ix] = board.getState()[row_ix][3 - centerOffset];
-            }
-            for(int row_ix = 0; row_ix < 6; row_ix++) {
-                centerRight[row_ix] = board.getState()[row_ix][3 + centerOffset];
-            }
-            sum += (int)Arrays.stream(centerLeft).filter(num -> num == player).count() * bonusPerPiece;
-            sum += (int)Arrays.stream(centerRight).filter(num -> num == player).count() * bonusPerPiece;
-
-            return sum;
-        }
     }
 
     private int windowScore(int[] window, int pointForThreatOfThree, int pointForThreatOfTwo, int pointForThreatOfOne) {
@@ -248,3 +218,4 @@ public class StudentPlayer extends Player{
         return score;
     }
 }
+// Path: src/StudentPlayer2.java
