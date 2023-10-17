@@ -9,12 +9,12 @@ public class StudentPlayer extends Player{
     public int step(Board board) {
         //System.out.println(Arrays.deepToString(board.getState()));
 
-        return minimax(board, 3, true)[1];
+        return minimax(board, 6, true, Integer.MIN_VALUE, Integer.MAX_VALUE)[1];
         //return 6;
     }
 
     // minimax
-    private int[] minimax(Board board, int depth, boolean isMaximizingPlayer) {
+    private int[] minimax(Board board, int depth, boolean isMaximizingPlayer, int alpha, int beta) {
         int[] best = new int[2];
 
         if(depth == 0 || board.gameEnded()) {
@@ -35,24 +35,31 @@ public class StudentPlayer extends Player{
             for(int col : board.getValidSteps()) {
                 Board boardCopy = new Board(board);
                 boardCopy.step(2, col);
-                int[] score = minimax(boardCopy, depth - 1, false);
+                int[] score = minimax(boardCopy, depth - 1, false, alpha, beta);
                 if(score[0] >= maxScore) {
                     maxScore = score[0];
                     best[0] = maxScore;
                     best[1] = col;
                 }
+                alpha = Math.max(alpha, maxScore);
+                if (maxScore >= beta) break;
+
+
             }
         } else {
             int minScore = Integer.MAX_VALUE;
             for(int col : board.getValidSteps()) {
                 Board boardCopy = new Board(board);
                 boardCopy.step(1, col);
-                int[] score = minimax(boardCopy, depth - 1, true);
+                int[] score = minimax(boardCopy, depth - 1, true, alpha, beta);
                 if(score[0] <= minScore) {
                     minScore = score[0];
                     best[0] = minScore;
                     best[1] = col;
                 }
+
+                beta = Math.min(beta, minScore);
+                if (minScore <= alpha) break;
             }
         }
 
