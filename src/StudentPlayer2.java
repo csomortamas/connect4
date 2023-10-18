@@ -1,8 +1,10 @@
-import java.util.Arrays;
+import java.util.*;
+import java.util.logging.Logger;
 
 public class StudentPlayer2 extends Player{
     private final int HUMAN_PLAYER = 1;
     private final int AI_PLAYER = 2;
+    private int checkedNodes = 0;
 
     public StudentPlayer2(int playerIndex, int[] boardSize, int nToConnect) {
         super(playerIndex, boardSize, nToConnect);
@@ -15,79 +17,56 @@ public class StudentPlayer2 extends Player{
         return minimax2(board, 5, false, Integer.MIN_VALUE, Integer.MAX_VALUE)[1];
     }
 
-    // minimax
-    private int[] minimax(Board board, int depth, boolean isMaximizingPlayer, int alpha, int beta) {
-        int[] best = new int[2];
-
-        if(depth == 0 || board.gameEnded()) {
-            best[0] = evaluate3(board);
-            best[1] = board.getValidSteps().get(0);
-
-            return best;
+    Comparator<Integer> closeComparator = new Comparator<Integer>() {
+        @Override
+        public int compare(Integer i1, Integer i2) {
+            int i1Dist = Math.abs(i1 - 3);
+            int i2Dist = Math.abs(i2 - 3);
+            return Integer.compare(i1Dist, i2Dist);
         }
-
-        if(isMaximizingPlayer) {
-            int maxScore = Integer.MIN_VALUE;
-            for(int col : board.getValidSteps()) {
-                Board boardCopy = new Board(board);
-                boardCopy.step(AI_PLAYER, col);
-                int[] score = minimax(boardCopy, depth - 1, false, alpha, beta);
-                if(score[0] > maxScore) {
-                    maxScore = score[0];
-                    best[0] = maxScore;
-                    best[1] = col;
-                }
-                //alpha = Math.max(alpha, maxScore);
-                //if (maxScore >= beta) break;
-            }
-        } else {
-            int minScore = Integer.MAX_VALUE;
-            for(int col : board.getValidSteps()) {
-                Board boardCopy = new Board(board);
-                boardCopy.step(HUMAN_PLAYER, col);
-                int[] score = minimax(boardCopy, depth - 1, true, alpha, beta);
-                if(score[0] < minScore) {
-                    minScore = score[0];
-                    best[0] = minScore;
-                    best[1] = col;
-                }
-
-                //beta = Math.min(beta, minScore);
-                //if (minScore <= alpha) break;
-            }
-        }
-
-        return best;
-    }
+    };
 
     private int[] minimax2(Board board, int depth, boolean isMaximizingPlayer, int alpha, int beta) {
-        if (depth == 0 || board.gameEnded()) return new int[] {evaluate3(board), getBestMove(board, isMaximizingPlayer)};
+        checkedNodes++;
+        Logger.getLogger("StudentPlayer").info("checked nodes: " + checkedNodes);
+        if (depth == 0 || board.gameEnded()) return new int[] {evaluate3(board), -1};
+
+        ArrayList<Integer> validSteps = board.getValidSteps();
+        validSteps.sort(closeComparator);
 
         if (isMaximizingPlayer) {
             int maxScore = Integer.MIN_VALUE;
             int bestMaxMove = board.getValidSteps().get(0); // get the first valid move
 
-            for(int col : board.getValidSteps()) {
+            for(int col : validSteps) {
                 Board boardCopy = new Board(board);
                 boardCopy.step(AI_PLAYER, col);
                 int score = minimax2(boardCopy, depth - 1, false, alpha, beta)[0];
+
                 if (score >= maxScore) {
                     maxScore = score;
                     bestMaxMove = col;
                 }
+                alpha = Math.max(alpha, maxScore);
+                //if (score >= 100_000) return new int[] {score, col}; // if it's a terminal maximum node always take it
+                if (alpha > beta) break;
             }
             return new int[] {maxScore, bestMaxMove};
         } else {
             int minScore = Integer.MAX_VALUE;
             int bestMinMove = board.getValidSteps().get(0); // get the first valid move
-            for(int col : board.getValidSteps()) {
+            for(int col : validSteps) {
                 Board boardCopy = new Board(board);
                 boardCopy.step(HUMAN_PLAYER, col);
                 int score = minimax2(boardCopy, depth - 1, true, alpha, beta)[0];
+
                 if(score <= minScore) {
                     minScore = score;
                     bestMinMove = col;
                 }
+                beta = Math.min(beta, minScore);
+                //if (score <= -100_000) return new int[] {score, col}; // if it's a terminal minimum node always take it
+                if (alpha > beta) break;
             }
             return new int[] {minScore, bestMinMove};
         }

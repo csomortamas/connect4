@@ -1,8 +1,10 @@
-import java.util.Arrays;
+import java.util.*;
+import java.util.logging.Logger;
 
 public class StudentPlayer extends Player{
     private final int HUMAN_PLAYER = 1;
     private final int AI_PLAYER = 2;
+    private int checkedNodes = 0;
 
     public StudentPlayer(int playerIndex, int[] boardSize, int nToConnect) {
         super(playerIndex, boardSize, nToConnect);
@@ -12,41 +14,59 @@ public class StudentPlayer extends Player{
     public int step(Board board) {
         //return minimax(board, 3, true, Integer.MIN_VALUE, Integer.MAX_VALUE)[1];
         //return getBestMove(board, true);
-        return minimax2(board, 5, true, Integer.MIN_VALUE, Integer.MAX_VALUE)[1];
+        return minimax2(board, 6, true, Integer.MIN_VALUE, Integer.MAX_VALUE)[1];
     }
 
+    Comparator<Integer> closeComparator = new Comparator<Integer>() {
+        @Override
+        public int compare(Integer i1, Integer i2) {
+            int i1Dist = Math.abs(i1 - 3);
+            int i2Dist = Math.abs(i2 - 3);
+            return Integer.compare(i1Dist, i2Dist);
+        }
+    };
+
     private int[] minimax2(Board board, int depth, boolean isMaximizingPlayer, int alpha, int beta) {
-        if (depth == 0 || board.gameEnded()) return new int[] {evaluate3(board), getBestMove(board, isMaximizingPlayer)};
+        checkedNodes++;
+        //Logger.getLogger("StudentPlayer").info("checked nodes: " + checkedNodes);
+        if (depth == 0 || board.gameEnded()) return new int[] {evaluate3(board), -1};
+
+        ArrayList<Integer> validSteps = board.getValidSteps();
+        validSteps.sort(closeComparator);
 
         if (isMaximizingPlayer) {
             int maxScore = Integer.MIN_VALUE;
             int bestMaxMove = board.getValidSteps().get(0); // get the first valid move
 
-            for(int col : board.getValidSteps()) {
+            for(int col : validSteps) {
                 Board boardCopy = new Board(board);
                 boardCopy.step(AI_PLAYER, col);
                 int score = minimax2(boardCopy, depth - 1, false, alpha, beta)[0];
+
                 if (score >= maxScore) {
                     maxScore = score;
                     bestMaxMove = col;
                 }
                 alpha = Math.max(alpha, maxScore);
+                //if (score >= 100_000) break; // if it's a terminal maximum node always take it
                 if (alpha > beta) break;
             }
             return new int[] {maxScore, bestMaxMove};
         } else {
             int minScore = Integer.MAX_VALUE;
             int bestMinMove = board.getValidSteps().get(0); // get the first valid move
-            for(int col : board.getValidSteps()) {
+            for(int col : validSteps) {
                 Board boardCopy = new Board(board);
                 boardCopy.step(HUMAN_PLAYER, col);
                 int score = minimax2(boardCopy, depth - 1, true, alpha, beta)[0];
+
                 if(score <= minScore) {
                     minScore = score;
                     bestMinMove = col;
                 }
                 beta = Math.min(beta, minScore);
-                if (alpha > beta) break;
+                if (score <= -100_000) break; // if it's a terminal minimum node always take it
+                //if (alpha > beta) break;
             }
             return new int[] {minScore, bestMinMove};
         }
@@ -200,9 +220,9 @@ public class StudentPlayer extends Player{
         else if (Arrays.stream(window).filter(num -> num == AI_PLAYER).count() == 2 && Arrays.stream(window).filter(num -> num == 0).count() == 2) score += pointForThreatOfTwo;
         else if (Arrays.stream(window).filter(num -> num == AI_PLAYER).count() == 1 && Arrays.stream(window).filter(num -> num == 0).count() == 3) score += pointForThreatOfOne;
 
-        if(Arrays.stream(window).filter(num -> num == HUMAN_PLAYER).count() == 3 && Arrays.stream(window).filter(num -> num == 0).count() == 1) score -= pointForThreatOfThree * 0.8;
-        else if (Arrays.stream(window).filter(num -> num == HUMAN_PLAYER).count() == 2 && Arrays.stream(window).filter(num -> num == 0).count() == 2) score -= pointForThreatOfTwo * 0.8;
-        else if (Arrays.stream(window).filter(num -> num == HUMAN_PLAYER).count() == 1 && Arrays.stream(window).filter(num -> num == 0).count() == 3) score -= pointForThreatOfOne * 0.8;
+        if(Arrays.stream(window).filter(num -> num == HUMAN_PLAYER).count() == 3 && Arrays.stream(window).filter(num -> num == 0).count() == 1) score -= pointForThreatOfThree;
+        else if (Arrays.stream(window).filter(num -> num == HUMAN_PLAYER).count() == 2 && Arrays.stream(window).filter(num -> num == 0).count() == 2) score -= pointForThreatOfTwo;
+        else if (Arrays.stream(window).filter(num -> num == HUMAN_PLAYER).count() == 1 && Arrays.stream(window).filter(num -> num == 0).count() == 3) score -= pointForThreatOfOne;
 
         return score;
     }
