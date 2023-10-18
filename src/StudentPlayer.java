@@ -12,52 +12,7 @@ public class StudentPlayer extends Player{
     public int step(Board board) {
         //return minimax(board, 3, true, Integer.MIN_VALUE, Integer.MAX_VALUE)[1];
         //return getBestMove(board, true);
-        return minimax2(board, 4, false, Integer.MIN_VALUE, Integer.MAX_VALUE)[1];
-    }
-
-    // minimax
-    private int[] minimax(Board board, int depth, boolean isMaximizingPlayer, int alpha, int beta) {
-        int[] best = new int[2];
-
-        if(depth == 0 || board.gameEnded()) {
-            best[0] = evaluate3(board);
-            best[1] = board.getValidSteps().get(0);
-
-            return best;
-        }
-
-        if(isMaximizingPlayer) {
-            int maxScore = Integer.MIN_VALUE;
-            for(int col : board.getValidSteps()) {
-                Board boardCopy = new Board(board);
-                boardCopy.step(AI_PLAYER, col);
-                int[] score = minimax(boardCopy, depth - 1, false, alpha, beta);
-                if(score[0] > maxScore) {
-                    maxScore = score[0];
-                    best[0] = maxScore;
-                    best[1] = col;
-                }
-                //alpha = Math.max(alpha, maxScore);
-                //if (maxScore >= beta) break;
-            }
-        } else {
-            int minScore = Integer.MAX_VALUE;
-            for(int col : board.getValidSteps()) {
-                Board boardCopy = new Board(board);
-                boardCopy.step(HUMAN_PLAYER, col);
-                int[] score = minimax(boardCopy, depth - 1, true, alpha, beta);
-                if(score[0] < minScore) {
-                    minScore = score[0];
-                    best[0] = minScore;
-                    best[1] = col;
-                }
-
-                //beta = Math.min(beta, minScore);
-                //if (minScore <= alpha) break;
-            }
-        }
-
-        return best;
+        return minimax2(board, 5, true, Integer.MIN_VALUE, Integer.MAX_VALUE)[1];
     }
 
     private int[] minimax2(Board board, int depth, boolean isMaximizingPlayer, int alpha, int beta) {
@@ -75,6 +30,8 @@ public class StudentPlayer extends Player{
                     maxScore = score;
                     bestMaxMove = col;
                 }
+                alpha = Math.max(alpha, maxScore);
+                if (alpha > beta) break;
             }
             return new int[] {maxScore, bestMaxMove};
         } else {
@@ -88,6 +45,8 @@ public class StudentPlayer extends Player{
                     minScore = score;
                     bestMinMove = col;
                 }
+                beta = Math.min(beta, minScore);
+                if (alpha > beta) break;
             }
             return new int[] {minScore, bestMinMove};
         }

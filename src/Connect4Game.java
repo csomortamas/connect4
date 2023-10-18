@@ -7,11 +7,11 @@ public class Connect4Game {
         Player[] players = new Player[2];
 
         // Player 1
-        //players[0] = new HumanPlayer(1, boardSize, nToConnect, view);
-        players[0] = new StudentPlayer(1, boardSize, nToConnect);
+        players[0] = new HumanPlayer(1, boardSize, nToConnect, view);
+        //players[0] = new StudentPlayer(1, boardSize, nToConnect);
 
         // Player 2
-        players[1] = new StudentPlayer2(2, boardSize, nToConnect);
+        players[1] = new StudentPlayer(2, boardSize, nToConnect);
 //        players[1] = new PythonPlayer(2, boardSize, nToConnect);
 
         GameLogic gameLogic = new GameLogic(players[0], players[1], view, boardSize, nToConnect);
