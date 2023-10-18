@@ -14,7 +14,7 @@ public class StudentPlayer extends Player{
     public int step(Board board) {
         //return minimax(board, 3, true, Integer.MIN_VALUE, Integer.MAX_VALUE)[1];
         //return getBestMove(board, true);
-        return minimax2(board, 6, true, Integer.MIN_VALUE, Integer.MAX_VALUE)[1];
+        return minimax2(board, 7, true, Integer.MIN_VALUE, Integer.MAX_VALUE)[1];
     }
 
     Comparator<Integer> closeComparator = new Comparator<Integer>() {
@@ -109,10 +109,18 @@ public class StudentPlayer extends Player{
         int score = 0;
         int windowSize = 4;
 
+
+        int pieces = 0;
+
+        for (int[] row : board.getState()) {
+            pieces += Arrays.stream(row).filter(num -> num != 0).count();
+        }
+
+
         // evaluate for win/loss
         if(board.gameEnded()) {
-            if (board.getWinner() == HUMAN_PLAYER) return -1_000_000;
-            else if (board.getWinner() == AI_PLAYER) return 1_000_000;
+            if (board.getWinner() == HUMAN_PLAYER) return -1_000_000 + pieces;
+            else if (board.getWinner() == AI_PLAYER) return 1_000_000 - pieces;
             return 0;
         }
 
