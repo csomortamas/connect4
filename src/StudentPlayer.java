@@ -48,7 +48,7 @@ public class StudentPlayer extends Player{
                     bestMaxMove = col;
                 }
                 alpha = Math.max(alpha, maxScore);
-                //if (score >= 100_000) break; // if it's a terminal maximum node always take it
+                //if (score >= 50_000) break; // if it's a terminal maximum node always take it
                 if (alpha > beta) break;
             }
             return new int[] {maxScore, bestMaxMove};
@@ -65,43 +65,11 @@ public class StudentPlayer extends Player{
                     bestMinMove = col;
                 }
                 beta = Math.min(beta, minScore);
-                if (score <= -100_000) break; // if it's a terminal minimum node always take it
-                //if (alpha > beta) break;
+                //if (score <= -50_000) break; // if it's a terminal minimum node always take it
+                if (alpha > beta) break;
             }
             return new int[] {minScore, bestMinMove};
         }
-    }
-
-    private int getBestMove(Board board, boolean isMaximizingPlayer) {
-        int bestMove = -1;
-
-        if (isMaximizingPlayer) {
-            int maxScore = Integer.MIN_VALUE;
-            int currScore;
-            for(int move : board.getValidSteps()) {
-                Board boardCopy = new Board(board);
-                boardCopy.step(AI_PLAYER, move);
-                currScore = evaluate3(boardCopy);
-                if(currScore > maxScore) {
-                    maxScore = currScore;
-                    bestMove = move;
-                }
-            }
-        } else {
-            int minScore = Integer.MAX_VALUE;
-            int currScore;
-            for(int move : board.getValidSteps()) {
-                Board boardCopy = new Board(board);
-                boardCopy.step(HUMAN_PLAYER, move);
-                currScore = evaluate3(boardCopy);
-                if(currScore < minScore) {
-                    minScore = currScore;
-                    bestMove = move;
-                }
-            }
-        }
-
-        return bestMove;
     }
 
     // evaluate v3
@@ -220,9 +188,6 @@ public class StudentPlayer extends Player{
 
     private int windowScore(int[] window, int pointForThreatOfThree, int pointForThreatOfTwo, int pointForThreatOfOne) {
         int score = 0;
-
-        //if(Arrays.stream(window).filter(num -> num == AI_PLAYER).count() == 4) return 100_000;
-        //if(Arrays.stream(window).filter(num -> num == HUMAN_PLAYER).count() == 4) return -100_000;
 
         if(Arrays.stream(window).filter(num -> num == AI_PLAYER).count() == 3 && Arrays.stream(window).filter(num -> num == 0).count() == 1) score += pointForThreatOfThree;
         else if (Arrays.stream(window).filter(num -> num == AI_PLAYER).count() == 2 && Arrays.stream(window).filter(num -> num == 0).count() == 2) score += pointForThreatOfTwo;
