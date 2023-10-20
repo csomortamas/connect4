@@ -4,7 +4,6 @@ import java.util.logging.Logger;
 public class StudentPlayer extends Player{
     private final int HUMAN_PLAYER = 1;
     private final int AI_PLAYER = 2;
-    private int checkedNodes = 0;
 
     public StudentPlayer(int playerIndex, int[] boardSize, int nToConnect) {
         super(playerIndex, boardSize, nToConnect);
@@ -12,9 +11,7 @@ public class StudentPlayer extends Player{
 
     @Override
     public int step(Board board) {
-        //return minimax(board, 3, true, Integer.MIN_VALUE, Integer.MAX_VALUE)[1];
-        //return getBestMove(board, true);
-        return minimax2(board, 7, true, Integer.MIN_VALUE, Integer.MAX_VALUE)[1];
+        return minimax(board, 7, true, Integer.MIN_VALUE, Integer.MAX_VALUE)[1];
     }
 
     Comparator<Integer> closeComparator = new Comparator<Integer>() {
@@ -26,79 +23,74 @@ public class StudentPlayer extends Player{
         }
     };
 
-    private int[] minimax2(Board board, int depth, boolean isMaximizingPlayer, int alpha, int beta) {
-        checkedNodes++;
-        //Logger.getLogger("StudentPlayer").info("checked nodes: " + checkedNodes);
-        if (depth == 0 || board.gameEnded()) return new int[] {evaluate3(board), -1};
+    private int[] minimax(Board board, int depth, boolean isMaximizingPlayer, int alpha, int beta) {
+        if (depth == 0 || board.gameEnded()) return new int[] {evaluate(board), -1};
 
         ArrayList<Integer> validSteps = board.getValidSteps();
         validSteps.sort(closeComparator);
 
         if (isMaximizingPlayer) {
             int maxScore = Integer.MIN_VALUE;
-            int bestMaxMove = board.getValidSteps().get(0); // get the first valid move
+            int bestMaxMove = board.getValidSteps().get(0);
 
             for(int col : validSteps) {
                 Board boardCopy = new Board(board);
                 boardCopy.step(AI_PLAYER, col);
-                int score = minimax2(boardCopy, depth - 1, false, alpha, beta)[0];
+                int score = minimax(boardCopy, depth - 1, false, alpha, beta)[0];
 
                 if (score >= maxScore) {
                     maxScore = score;
                     bestMaxMove = col;
                 }
                 alpha = Math.max(alpha, maxScore);
-                //if (score >= 50_000) break; // if it's a terminal maximum node always take it
                 if (alpha > beta) break;
             }
             return new int[] {maxScore, bestMaxMove};
         } else {
             int minScore = Integer.MAX_VALUE;
-            int bestMinMove = board.getValidSteps().get(0); // get the first valid move
+            int bestMinMove = board.getValidSteps().get(0);
             for(int col : validSteps) {
                 Board boardCopy = new Board(board);
                 boardCopy.step(HUMAN_PLAYER, col);
-                int score = minimax2(boardCopy, depth - 1, true, alpha, beta)[0];
+                int score = minimax(boardCopy, depth - 1, true, alpha, beta)[0];
 
                 if(score <= minScore) {
                     minScore = score;
                     bestMinMove = col;
                 }
                 beta = Math.min(beta, minScore);
-                //if (score <= -50_000) break; // if it's a terminal minimum node always take it
                 if (alpha > beta) break;
             }
             return new int[] {minScore, bestMinMove};
         }
     }
 
-    // evaluate v3
-    private int evaluate3(Board board) {
+    private int evaluate(Board board) {
         int score = 0;
         int windowSize = 4;
-
-
         int pieces = 0;
 
-        for (int[] row : board.getState()) {
+        int POINT_FOR_THREAT_OF_THREE = 100;
+        int POINT_FOR_THREAT_OF_TWO = 20;
+        int POINT_FOR_THREAT_OF_ONE = 3;
+
+        int[][] state = board.getState();
+
+        for (int[] row : state) {
             pieces += Arrays.stream(row).filter(num -> num != 0).count();
         }
 
-
-        // evaluate for win/loss
         if(board.gameEnded()) {
             if (board.getWinner() == HUMAN_PLAYER) return -1_000_000 + pieces;
             else if (board.getWinner() == AI_PLAYER) return 1_000_000 - pieces;
             return 0;
         }
 
-
-        // horizontal
-        for(int[] row : board.getState()) {
+        for(int[] row : state) {
             for(int i = 0; i < row.length - windowSize; i++) {
                 int[] window = Arrays.copyOfRange(row, i, i + windowSize);
 
-                score += windowScore(window, 100, 20, 3);
+                score += windowScore(window, POINT_FOR_THREAT_OF_THREE, POINT_FOR_THREAT_OF_TWO, POINT_FOR_THREAT_OF_ONE);
             }
         }
 
@@ -107,14 +99,14 @@ public class StudentPlayer extends Player{
             // get column array
             int[] column = new int[6];
             for(int row_ix = 0; row_ix < 6; row_ix++) {
-                column[row_ix] = board.getState()[row_ix][coll_ix];
+                column[row_ix] = state[row_ix][coll_ix];
             }
 
             // assign points
             for(int i = 0; i < column.length - windowSize; i++) {
                 int[] window = Arrays.copyOfRange(column, i, i + windowSize);
 
-                score += windowScore(window, 100, 20, 3);
+                score += windowScore(window, POINT_FOR_THREAT_OF_THREE, POINT_FOR_THREAT_OF_TWO, POINT_FOR_THREAT_OF_ONE);
             }
         }
 
@@ -123,10 +115,10 @@ public class StudentPlayer extends Player{
             for(int coll_ix = 0; coll_ix < 4; coll_ix++) {
                 int[] window = new int[4];
                 for(int i = 0; i < 4; i++) {
-                    window[i] = board.getState()[row_ix + i][coll_ix + i];
+                    window[i] = state[row_ix + i][coll_ix + i];
                 }
 
-                score += windowScore(window, 100, 20, 3);
+                score += windowScore(window, POINT_FOR_THREAT_OF_THREE, POINT_FOR_THREAT_OF_TWO, POINT_FOR_THREAT_OF_ONE);
             }
         }
 
@@ -135,17 +127,11 @@ public class StudentPlayer extends Player{
             for(int coll_ix = 3; coll_ix < 7; coll_ix++) {
                 int[] window = new int[4];
                 for(int i = 0; i < 4; i++) {
-                    window[i] = board.getState()[row_ix + i][coll_ix - i];
+                    window[i] = state[row_ix + i][coll_ix - i];
                 }
-                score += windowScore(window, 100, 20, 3);
+                score += windowScore(window, POINT_FOR_THREAT_OF_THREE, POINT_FOR_THREAT_OF_TWO, POINT_FOR_THREAT_OF_ONE);
             }
         }
-
-        // center column bonus
-        //int[] centerArray = new int[6];
-        //for(int row_ix = 0; row_ix < 6; row_ix++) {
-        //    centerArray[row_ix] = board.getState()[row_ix][3];
-        //}
         score += centerBonusVariant(board, 0, AI_PLAYER, 5);
         score += centerBonusVariant(board, 0, HUMAN_PLAYER, -5);
 
@@ -156,10 +142,6 @@ public class StudentPlayer extends Player{
         score += centerBonusVariant(board, 2, HUMAN_PLAYER, -2);
 
         return score;
-    }
-
-    private int centerBonus(int[] centerColumn, int player, int bonusPerPiece) {
-        return (int)Arrays.stream(centerColumn).filter(num -> num == player).count() * bonusPerPiece;
     }
 
     private int centerBonusVariant(Board board, int centerOffset, int player, int bonusPerPiece) {
